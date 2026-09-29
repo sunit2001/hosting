@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Online Examination System</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ================= HEADER ================= -->
+
+    <header class="header">
+
+        <div class="logo">
+            Online Exam
+        </div>
+
+        <div class="timer-box">
+            <span>Time Left</span>
+            <strong id="timer">10:00</strong>
+        </div>
+
+    </header>
+
+
+    <!-- ================= MAIN ================= -->
+
+    <main class="container">
+
+
+        <!-- ================= STUDENT INFORMATION ================= -->
+
+        <section class="card" id="studentSection">
+
+            <h1>Student Examination Form</h1>
+
+            <p class="subtitle">
+                Enter your details before starting the examination.
+            </p>
+
+
+            <form id="studentForm">
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="studentName">
+                            Student Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="studentName"
+                            placeholder="Enter student name"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="rollNumber">
+                            Roll Number
+                        </label>
+
+                        <input
+                            type="text"
+                            id="rollNumber"
+                            placeholder="Enter roll number"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <div class="form-row">
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            Email
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="Enter email address"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="subject">
+                            Subject
+                        </label>
+
+                        <select id="subject" required>
+
+                            <option value="">
+                                Select Subject
+                            </option>
+
+                            <option value="JavaScript">
+                                JavaScript
+                            </option>
+
+                            <option value="ServiceNow">
+                                ServiceNow
+                            </option>
+
+                            <option value="HTML">
+                                HTML
+                            </option>
+
+                            <option value="CSS">
+                                CSS
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="submit"
+                    class="start-btn"
+                >
+                    Start Examination
+                </button>
+
+            </form>
+
+        </section>
+
+
+
+        <!-- ================= EXAM SECTION ================= -->
+
+        <section
+            class="card exam-section"
+            id="examSection"
+            style="display:none;"
+        >
+
+            <div class="exam-header">
+
+                <div>
+
+                    <h2 id="questionNumber">
+                        Question 1 of 10
+                    </h2>
+
+                    <p id="studentDisplay"></p>
+
+                </div>
+
+                <div class="score-info">
+
+                    <span>
+                        Answered:
+                    </span>
+
+                    <strong id="answeredCount">
+                        0
+                    </strong>
+
+                    / 10
+
+                </div>
+
+            </div>
+
+
+            <!-- Progress -->
+
+            <div class="progress-container">
+
+                <div
+                    class="progress-bar"
+                    id="progressBar"
+                ></div>
+
+            </div>
+
+
+            <!-- Question -->
+
+            <div class="question-container">
+
+                <h3 id="questionText">
+                    Question text
+                </h3>
+
+
+                <div
+                    id="optionsContainer"
+                    class="options"
+                >
+                </div>
+
+            </div>
+
+
+            <!-- Navigation -->
+
+            <div class="navigation">
+
+                <button
+                    type="button"
+                    id="previousBtn"
+                    class="nav-btn"
+                >
+                    Previous
+                </button>
+
+
+                <button
+                    type="button"
+                    id="nextBtn"
+                    class="nav-btn primary"
+                >
+                    Next
+                </button>
+
+
+                <button
+                    type="button"
+                    id="submitBtn"
+                    class="submit-btn"
+                >
+                    Submit Exam
+                </button>
+
+            </div>
+
+
+            <!-- Question Navigator -->
+
+            <div class="question-navigator">
+
+                <h3>Questions</h3>
+
+                <div id="questionButtons"></div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- ================= RESULT SECTION ================= -->
+
+        <section
+            class="card result-section"
+            id="resultSection"
+            style="display:none;"
+        >
+
+            <div class="result-icon">
+                ✓
+            </div>
+
+            <h1>
+                Examination Completed
+            </h1>
+
+            <p id="resultStudent"></p>
+
+
+            <div class="result-box">
+
+                <div class="result-item">
+
+                    <span>
+                        Total Questions
+                    </span>
+
+                    <strong id="totalQuestions">
+                        10
+                    </strong>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <span>
+                        Correct Answers
+                    </span>
+
+                    <strong id="correctAnswers">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <span>
+                        Wrong Answers
+                    </span>
+
+                    <strong id="wrongAnswers">
+                        0
+                    </strong>
+
+                </div>
+
+
+                <div class="result-item">
+
+                    <span>
+                        Score
+                    </span>
+
+                    <strong id="finalScore">
+                        0%
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="passStatus"
+                class="pass-status"
+            >
+            </div>
+
+
+            <div class="review">
+
+                <h2>
+                    Answer Review
+                </h2>
+
+                <div id="reviewContainer"></div>
+
+            </div>
+
+
+            <button
+                onclick="restartExam()"
+                class="restart-btn"
+            >
+                Restart Examination
+            </button>
+
+        </section>
+
+    </main>
+
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
