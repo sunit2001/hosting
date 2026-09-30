@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify, render_template
+
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import sqlite3
 
@@ -20,33 +21,28 @@ DATABASE = "exam.db"
 
 def get_db():
 
-    conn = sqlite3.connect(
-        DATABASE,
-        timeout=30
-    )
+    conn = sqlite3.connect(DATABASE)
 
     conn.row_factory = sqlite3.Row
-
-    conn.execute(
-        "PRAGMA busy_timeout = 30000"
-    )
 
     return conn
 
 
 # =====================================================
-# INITIALIZE DATABASE
+# CREATE TABLES
 # =====================================================
 
-def init_db():
+def create_tables():
 
     conn = get_db()
 
-    # -------------------------------------------------
-    # STUDENTS TABLE
-    # -------------------------------------------------
+    cursor = conn.cursor()
 
-    conn.execute("""
+    # =================================================
+    # STUDENTS TABLE
+    # =================================================
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS students (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,28 +60,28 @@ def init_db():
         )
     """)
 
-    # -------------------------------------------------
-    # EXAM RESULTS TABLE
-    # -------------------------------------------------
+    # =================================================
+    # RESULTS TABLE
+    # =================================================
 
-    conn.execute("""
-        CREATE TABLE IF NOT EXISTS exam_results (
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS results (
 
             id INTEGER PRIMARY KEY AUTOINCREMENT,
 
-            student_id INTEGER NOT NULL,
+            student_id INTEGER,
 
-            total_questions INTEGER NOT NULL,
+            total_questions INTEGER,
 
-            correct_answers INTEGER NOT NULL,
+            correct_answers INTEGER,
 
-            wrong_answers INTEGER NOT NULL,
+            wrong_answers INTEGER,
 
-            score INTEGER NOT NULL,
+            score REAL,
 
-            status TEXT NOT NULL,
+            status TEXT,
 
-            submitted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
 
             FOREIGN KEY(student_id)
                 REFERENCES students(id)
@@ -99,25 +95,23 @@ def init_db():
 
 
 # =====================================================
-# HOME PAGE
+# HOME
 # =====================================================
 
 @app.route("/")
 def home():
 
-    return render_template(
-        "index.html"
-    )
+    return jsonify({
+        "message": "Online Examination API is running",
+        "status": "success"
+    })
 
 
 # =====================================================
 # CREATE STUDENT
 # =====================================================
 
-@app.route(
-    "/api/students",
-    methods=["POST"]
-)
+@app.route("/api/students", methods=["POST"])
 def create_student():
 
     try:
@@ -127,72 +121,54 @@ def create_student():
         if not data:
 
             return jsonify({
-                "error": "No student data received"
+                "error": "No data received"
             }), 400
 
-        name = str(
-            data.get(
-                "name",
-                ""
-            )
+        name = data.get(
+            "name",
+            ""
         ).strip()
 
-        roll_number = str(
-            data.get(
-                "roll_number",
-                ""
-            )
+        roll_number = data.get(
+            "roll_number",
+            ""
         ).strip()
 
-        email = str(
-            data.get(
-                "email",
-                ""
-            )
+        email = data.get(
+            "email",
+            ""
         ).strip()
 
-        subject = str(
-            data.get(
-                "subject",
-                ""
-            )
+        subject = data.get(
+            "subject",
+            ""
         ).strip()
 
-        # -------------------------------------------------
+        # =================================================
         # VALIDATION
-        # -------------------------------------------------
+        # =================================================
 
-        if not name:
-
-            return jsonify({
-                "error": "Student name is required"
-            }), 400
-
-        if not roll_number:
-
-            return jsonify({
-                "error": "Roll number is required"
-            }), 400
-
-        if not email:
+        if (
+            not name
+            or not roll_number
+            or not email
+            or not subject
+        ):
 
             return jsonify({
-                "error": "Email is required"
+                "error": "All fields are required"
             }), 400
 
-        if not subject:
-
-            return jsonify({
-                "error": "Subject is required"
-            }), 400
-
-        # -------------------------------------------------
+        # =================================================
         # INSERT STUDENT
-        # -------------------------------------------------
+        # =================================================
 
         conn = get_db()
 
-        cursor = conn.execute("""
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
             INSERT INTO students
             (
                 name,
@@ -200,56 +176,31 @@ def create_student():
                 email,
                 subject
             )
-
             VALUES (?, ?, ?, ?)
-
-        """, (
-            name,
-            roll_number,
-            email,
-            subject
-        ))
-
-        conn.commit()
+            """,
+            (
+                name,
+                roll_number,
+                email,
+                subject
+            )
+        )
 
         student_id = cursor.lastrowid
+
+        conn.commit()
 
         conn.close()
 
         return jsonify({
-
             "message": "Student created successfully",
-
-            "student_id": student_id,
-
-            "name": name,
-
-            "roll_number": roll_number,
-
-            "email": email,
-
-            "subject": subject
-
+            "student_id": student_id
         }), 201
-
-    except sqlite3.IntegrityError as e:
-
-        print(
-            "Student Database Error:",
-            e
-        )
-
-        return jsonify({
-
-            "error":
-                "Database constraint error: " + str(e)
-
-        }), 400
 
     except Exception as e:
 
         print(
-            "Create Student Error:",
+            "Student Error:",
             e
         )
 
@@ -259,14 +210,11 @@ def create_student():
 
 
 # =====================================================
-# SAVE EXAM RESULT
+# SAVE RESULT
 # =====================================================
 
-@app.route(
-    "/api/results",
-    methods=["POST"]
-)
-def save_result():
+@app.route("/api/results", methods=["POST"])
+def create_result():
 
     try:
 
@@ -275,114 +223,49 @@ def save_result():
         if not data:
 
             return jsonify({
-                "error": "No result data received"
+                "error": "No data received"
             }), 400
 
-        student_id = data.get("student_id")
-
-        total_questions = int(
-            data.get(
-                "total_questions",
-                0
-            )
+        student_id = data.get(
+            "student_id"
         )
 
-        correct_answers = int(
-            data.get(
-                "correct_answers",
-                0
-            )
+        total_questions = data.get(
+            "total_questions",
+            0
         )
 
-        wrong_answers = int(
-            data.get(
-                "wrong_answers",
-                0
-            )
+        correct_answers = data.get(
+            "correct_answers",
+            0
         )
 
-        score = int(
-            data.get(
-                "score",
-                0
-            )
+        wrong_answers = data.get(
+            "wrong_answers",
+            0
         )
 
-        # -------------------------------------------------
-        # VALIDATION
-        # -------------------------------------------------
+        score = data.get(
+            "score",
+            0
+        )
 
-        if not student_id:
+        status = data.get(
+            "status",
+            ""
+        )
 
-            return jsonify({
-                "error": "Student ID is required"
-            }), 400
-
-        if total_questions <= 0:
-
-            return jsonify({
-                "error": "Invalid total questions"
-            }), 400
-
-        if correct_answers < 0:
-
-            return jsonify({
-                "error": "Invalid correct answer count"
-            }), 400
-
-        if wrong_answers < 0:
-
-            return jsonify({
-                "error": "Invalid wrong answer count"
-            }), 400
-
-        if score < 0 or score > 100:
-
-            return jsonify({
-                "error": "Score must be between 0 and 100"
-            }), 400
-
-        # -------------------------------------------------
-        # VERIFY STUDENT
-        # -------------------------------------------------
+        # =================================================
+        # INSERT RESULT
+        # =================================================
 
         conn = get_db()
 
-        student = conn.execute("""
-            SELECT id
-            FROM students
-            WHERE id = ?
+        cursor = conn.cursor()
 
-        """, (
-            student_id,
-        )).fetchone()
-
-        if not student:
-
-            conn.close()
-
-            return jsonify({
-                "error": "Student not found"
-            }), 404
-
-        # -------------------------------------------------
-        # PASS / FAIL
-        # -------------------------------------------------
-
-        if score >= 50:
-
-            status = "PASS"
-
-        else:
-
-            status = "FAIL"
-
-        # -------------------------------------------------
-        # INSERT RESULT
-        # -------------------------------------------------
-
-        cursor = conn.execute("""
-            INSERT INTO exam_results
+        cursor.execute(
+            """
+            INSERT INTO results
             (
                 student_id,
                 total_questions,
@@ -391,67 +274,33 @@ def save_result():
                 score,
                 status
             )
-
             VALUES (?, ?, ?, ?, ?, ?)
-
-        """, (
-            student_id,
-            total_questions,
-            correct_answers,
-            wrong_answers,
-            score,
-            status
-        ))
-
-        conn.commit()
+            """,
+            (
+                student_id,
+                total_questions,
+                correct_answers,
+                wrong_answers,
+                score,
+                status
+            )
+        )
 
         result_id = cursor.lastrowid
+
+        conn.commit()
 
         conn.close()
 
         return jsonify({
-
-            "message":
-                "Exam result saved successfully",
-
-            "result_id":
-                result_id,
-
-            "student_id":
-                student_id,
-
-            "score":
-                score,
-
-            "status":
-                status
-
+            "message": "Result saved successfully",
+            "result_id": result_id
         }), 201
-
-    except ValueError:
-
-        return jsonify({
-            "error": "Invalid numeric value"
-        }), 400
-
-    except sqlite3.IntegrityError as e:
-
-        print(
-            "Result Database Error:",
-            e
-        )
-
-        return jsonify({
-
-            "error":
-                "Database constraint error: " + str(e)
-
-        }), 400
 
     except Exception as e:
 
         print(
-            "Save Result Error:",
+            "Result Error:",
             e
         )
 
@@ -461,45 +310,38 @@ def save_result():
 
 
 # =====================================================
-# GET ALL STUDENTS
+# GET STUDENTS
 # =====================================================
 
-@app.route(
-    "/api/students",
-    methods=["GET"]
-)
+@app.route("/api/students", methods=["GET"])
 def get_students():
 
     try:
 
         conn = get_db()
 
-        rows = conn.execute("""
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
             SELECT *
             FROM students
             ORDER BY id DESC
-        """).fetchall()
+            """
+        )
+
+        rows = cursor.fetchall()
 
         conn.close()
 
-        students = []
+        students = [
+            dict(row)
+            for row in rows
+        ]
 
-        for row in rows:
-
-            students.append(
-                dict(row)
-            )
-
-        return jsonify(
-            students
-        )
+        return jsonify(students)
 
     except Exception as e:
-
-        print(
-            "Get Students Error:",
-            e
-        )
 
         return jsonify({
             "error": str(e)
@@ -507,153 +349,55 @@ def get_students():
 
 
 # =====================================================
-# GET ALL RESULTS
+# GET RESULTS
 # =====================================================
 
-@app.route(
-    "/api/results",
-    methods=["GET"]
-)
+@app.route("/api/results", methods=["GET"])
 def get_results():
 
     try:
 
         conn = get_db()
 
-        rows = conn.execute("""
+        cursor = conn.cursor()
+
+        cursor.execute(
+            """
             SELECT
-
-                exam_results.id,
-
-                exam_results.student_id,
-
+                results.id,
+                results.student_id,
                 students.name,
-
                 students.roll_number,
-
                 students.email,
-
                 students.subject,
+                results.total_questions,
+                results.correct_answers,
+                results.wrong_answers,
+                results.score,
+                results.status,
+                results.created_at
 
-                exam_results.total_questions,
+            FROM results
 
-                exam_results.correct_answers,
+            LEFT JOIN students
+            ON results.student_id = students.id
 
-                exam_results.wrong_answers,
+            ORDER BY results.id DESC
+            """
+        )
 
-                exam_results.score,
-
-                exam_results.status,
-
-                exam_results.submitted_at
-
-            FROM exam_results
-
-            INNER JOIN students
-
-            ON exam_results.student_id = students.id
-
-            ORDER BY exam_results.id DESC
-
-        """).fetchall()
+        rows = cursor.fetchall()
 
         conn.close()
 
-        results = []
-
-        for row in rows:
-
-            results.append(
-                dict(row)
-            )
-
-        return jsonify(
-            results
-        )
-
-    except Exception as e:
-
-        print(
-            "Get Results Error:",
-            e
-        )
-
-        return jsonify({
-            "error": str(e)
-        }), 500
-
-
-# =====================================================
-# GET SINGLE RESULT
-# =====================================================
-
-@app.route(
-    "/api/results/<int:result_id>",
-    methods=["GET"]
-)
-def get_single_result(result_id):
-
-    try:
-
-        conn = get_db()
-
-        row = conn.execute("""
-            SELECT
-
-                exam_results.id,
-
-                exam_results.student_id,
-
-                students.name,
-
-                students.roll_number,
-
-                students.email,
-
-                students.subject,
-
-                exam_results.total_questions,
-
-                exam_results.correct_answers,
-
-                exam_results.wrong_answers,
-
-                exam_results.score,
-
-                exam_results.status,
-
-                exam_results.submitted_at
-
-            FROM exam_results
-
-            INNER JOIN students
-
-            ON exam_results.student_id = students.id
-
-            WHERE exam_results.id = ?
-
-        """, (
-            result_id,
-        )).fetchone()
-
-        conn.close()
-
-        if not row:
-
-            return jsonify({
-                "error": "Result not found"
-            }), 404
-
-        return jsonify(
+        results = [
             dict(row)
-        )
+            for row in rows
+        ]
+
+        return jsonify(results)
 
     except Exception as e:
-
-        print(
-            "Get Result Error:",
-            e
-        )
 
         return jsonify({
             "error": str(e)
@@ -661,165 +405,16 @@ def get_single_result(result_id):
 
 
 # =====================================================
-# DASHBOARD
-# =====================================================
-
-@app.route(
-    "/api/dashboard",
-    methods=["GET"]
-)
-def dashboard():
-
-    try:
-
-        conn = get_db()
-
-        total_students = conn.execute("""
-            SELECT COUNT(*) AS total
-            FROM students
-        """).fetchone()["total"]
-
-        total_exams = conn.execute("""
-            SELECT COUNT(*) AS total
-            FROM exam_results
-        """).fetchone()["total"]
-
-        passed = conn.execute("""
-            SELECT COUNT(*) AS total
-            FROM exam_results
-            WHERE status = 'PASS'
-        """).fetchone()["total"]
-
-        failed = conn.execute("""
-            SELECT COUNT(*) AS total
-            FROM exam_results
-            WHERE status = 'FAIL'
-        """).fetchone()["total"]
-
-        average_score = conn.execute("""
-            SELECT AVG(score) AS average
-            FROM exam_results
-        """).fetchone()["average"]
-
-        conn.close()
-
-        return jsonify({
-
-            "total_students":
-                total_students,
-
-            "total_exams":
-                total_exams,
-
-            "passed":
-                passed,
-
-            "failed":
-                failed,
-
-            "average_score":
-                round(
-                    average_score or 0,
-                    2
-                )
-
-        })
-
-    except Exception as e:
-
-        print(
-            "Dashboard Error:",
-            e
-        )
-
-        return jsonify({
-            "error": str(e)
-        }), 500
-
-
-# =====================================================
-# DELETE RESULT
-# =====================================================
-
-@app.route(
-    "/api/results/<int:result_id>",
-    methods=["DELETE"]
-)
-def delete_result(result_id):
-
-    try:
-
-        conn = get_db()
-
-        cursor = conn.execute("""
-            DELETE FROM exam_results
-            WHERE id = ?
-
-        """, (
-            result_id,
-        ))
-
-        conn.commit()
-
-        deleted = cursor.rowcount
-
-        conn.close()
-
-        if deleted == 0:
-
-            return jsonify({
-                "error": "Result not found"
-            }), 404
-
-        return jsonify({
-
-            "message":
-                "Result deleted successfully"
-
-        })
-
-    except Exception as e:
-
-        print(
-            "Delete Result Error:",
-            e
-        )
-
-        return jsonify({
-            "error": str(e)
-        }), 500
-
-
-# =====================================================
-# START SERVER
+# RUN SERVER
 # =====================================================
 
 if __name__ == "__main__":
 
-    init_db()
-
-    print(
-        "======================================"
-    )
-
-    print(
-        " Online Examination Server"
-    )
-
-    print(
-        " Database: exam.db"
-    )
-
-    print(
-        " URL: http://127.0.0.1:5000"
-    )
-
-    print(
-        "======================================"
-    )
+    create_tables()
 
     app.run(
         host="127.0.0.1",
         port=5000,
         debug=True
     )
+

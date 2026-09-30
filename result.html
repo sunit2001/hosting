@@ -1,0 +1,406 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Examination Result</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+
+<body>
+
+
+<header class="header">
+
+    <div class="logo">
+        Online Exam
+    </div>
+
+</header>
+
+
+<main class="container">
+
+
+<section class="card result-section">
+
+
+    <div class="result-icon">
+        ✓
+    </div>
+
+
+    <h1>
+        Examination Completed
+    </h1>
+
+
+    <p id="resultStudent">
+    </p>
+
+
+
+    <div class="result-box">
+
+
+        <div class="result-item">
+
+            <span>
+                Total Questions
+            </span>
+
+            <strong id="totalQuestions">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="result-item">
+
+            <span>
+                Correct Answers
+            </span>
+
+            <strong id="correctAnswers">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="result-item">
+
+            <span>
+                Wrong Answers
+            </span>
+
+            <strong id="wrongAnswers">
+                0
+            </strong>
+
+        </div>
+
+
+        <div class="result-item">
+
+            <span>
+                Score
+            </span>
+
+            <strong id="finalScore">
+                0%
+            </strong>
+
+        </div>
+
+
+    </div>
+
+
+
+    <div
+        id="passStatus"
+        class="pass-status">
+    </div>
+
+
+
+    <div class="review">
+
+
+        <h2>
+            Answer Review
+        </h2>
+
+
+        <div id="reviewContainer">
+        </div>
+
+
+    </div>
+
+
+
+    <button
+        onclick="restartExam()"
+        class="restart-btn">
+
+        Restart Examination
+
+    </button>
+
+
+</section>
+
+
+</main>
+
+
+<script>
+
+    const studentName =
+        localStorage.getItem(
+            "studentName"
+        );
+
+
+    const rollNumber =
+        localStorage.getItem(
+            "rollNumber"
+        );
+
+
+    const subject =
+        localStorage.getItem(
+            "subject"
+        );
+
+
+    const total =
+        localStorage.getItem(
+            "totalQuestions"
+        );
+
+
+    const correct =
+        localStorage.getItem(
+            "correctAnswers"
+        );
+
+
+    const wrong =
+        localStorage.getItem(
+            "wrongAnswers"
+        );
+
+
+    const score =
+        localStorage.getItem(
+            "score"
+        );
+
+
+    const status =
+        localStorage.getItem(
+            "status"
+        );
+
+
+    const userAnswers =
+        JSON.parse(
+            localStorage.getItem(
+                "userAnswers"
+            ) || "[]"
+        );
+
+
+    const questions =
+        JSON.parse(
+            localStorage.getItem(
+                "questions"
+            ) || "[]"
+        );
+
+
+
+    // =================================================
+    // DISPLAY STUDENT
+    // =================================================
+
+    document.getElementById(
+        "resultStudent"
+    ).textContent =
+        "Student: " +
+        studentName +
+        " | Roll No: " +
+        rollNumber +
+        " | Subject: " +
+        subject;
+
+
+
+    // =================================================
+    // DISPLAY RESULT
+    // =================================================
+
+    document.getElementById(
+        "totalQuestions"
+    ).textContent =
+        total;
+
+
+    document.getElementById(
+        "correctAnswers"
+    ).textContent =
+        correct;
+
+
+    document.getElementById(
+        "wrongAnswers"
+    ).textContent =
+        wrong;
+
+
+    document.getElementById(
+        "finalScore"
+    ).textContent =
+        score + "%";
+
+
+
+    // =================================================
+    // PASS / FAIL
+    // =================================================
+
+    const passStatus =
+        document.getElementById(
+            "passStatus"
+        );
+
+
+    if (status === "PASS") {
+
+        passStatus.textContent =
+            "PASS";
+
+        passStatus.className =
+            "pass-status pass";
+
+    } else {
+
+        passStatus.textContent =
+            "FAIL";
+
+        passStatus.className =
+            "pass-status fail";
+
+    }
+
+
+
+    // =================================================
+    // ANSWER REVIEW
+    // =================================================
+
+    const reviewContainer =
+        document.getElementById(
+            "reviewContainer"
+        );
+
+
+    questions.forEach(
+        function (question, index) {
+
+            const userAnswer =
+                userAnswers[index];
+
+
+            const isCorrect =
+                userAnswer ===
+                question.answer;
+
+
+            const reviewItem =
+                document.createElement(
+                    "div"
+                );
+
+
+            reviewItem.className =
+                "review-item " +
+                (
+                    isCorrect
+                        ? "correct"
+                        : "wrong"
+                );
+
+
+            const userAnswerText =
+                userAnswer !== null &&
+                userAnswer !== undefined
+                    ? question.options[
+                        userAnswer
+                    ]
+                    : "Not Answered";
+
+
+            const correctAnswerText =
+                question.options[
+                    question.answer
+                ];
+
+
+            reviewItem.innerHTML = `
+
+                <div class="review-question">
+
+                    ${index + 1}.
+                    ${question.question}
+
+                </div>
+
+
+                <div>
+
+                    Your Answer:
+
+                    <strong>
+                        ${userAnswerText}
+                    </strong>
+
+                </div>
+
+
+                <div class="correct-answer">
+
+                    Correct Answer:
+
+                    <strong>
+                        ${correctAnswerText}
+                    </strong>
+
+                </div>
+
+            `;
+
+
+            reviewContainer.appendChild(
+                reviewItem
+            );
+
+        }
+    );
+
+
+
+    // =================================================
+    // RESTART
+    // =================================================
+
+    function restartExam() {
+
+        localStorage.clear();
+
+        window.location.href =
+            "index.html";
+
+    }
+
+</script>
+
+
+</body>
+
+</html>
+

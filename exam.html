@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Online Examination</title>
+
+    <link rel="stylesheet"
+          href="style.css">
+
+</head>
+
+
+<body>
+
+
+<header class="header">
+
+    <div class="logo">
+        Online Exam
+    </div>
+
+
+    <div class="timer-box">
+
+        <span>
+            Time Left
+        </span>
+
+        <strong id="timer">
+            10:00
+        </strong>
+
+    </div>
+
+</header>
+
+
+
+<main class="container">
+
+
+<section class="card exam-section">
+
+
+    <!-- ================= EXAM HEADER ================= -->
+
+    <div class="exam-header">
+
+
+        <div>
+
+            <h2 id="questionNumber">
+                Question 1 of 10
+            </h2>
+
+            <p id="studentDisplay"></p>
+
+        </div>
+
+
+        <div class="score-info">
+
+            <span>
+                Answered:
+            </span>
+
+            <strong id="answeredCount">
+                0
+            </strong>
+
+            / 10
+
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= PROGRESS ================= -->
+
+    <div class="progress-container">
+
+        <div
+            class="progress-bar"
+            id="progressBar">
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= QUESTION ================= -->
+
+    <div class="question-container">
+
+        <h3 id="questionText">
+            Question
+        </h3>
+
+
+        <div
+            id="optionsContainer"
+            class="options">
+        </div>
+
+    </div>
+
+
+
+    <!-- ================= NAVIGATION ================= -->
+
+    <div class="navigation">
+
+
+        <button
+            type="button"
+            id="previousBtn"
+            class="nav-btn">
+
+            Previous
+
+        </button>
+
+
+        <button
+            type="button"
+            id="nextBtn"
+            class="nav-btn primary">
+
+            Next
+
+        </button>
+
+
+        <button
+            type="button"
+            id="submitBtn"
+            class="submit-btn">
+
+            Submit Exam
+
+        </button>
+
+
+    </div>
+
+
+
+    <!-- ================= QUESTION NAVIGATOR ================= -->
+
+    <div class="question-navigator">
+
+        <h3>
+            Questions
+        </h3>
+
+        <div id="questionButtons"></div>
+
+    </div>
+
+
+</section>
+
+
+</main>
+
+
+<script src="exam.js"></script>
+
+</body>
+
+</html>
+
