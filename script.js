@@ -3,7 +3,7 @@
 // API CONFIGURATION
 // =====================================================
 
-const API_URL = "https://earnest-salmiakki-cf7ec3.netlify.app/index.html";
+const API_URL = "http://127.0.0.1:5000";
 
 
 // =====================================================
